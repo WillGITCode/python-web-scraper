@@ -21,14 +21,17 @@ class WebScrapeService:
         except:
             print("Error: Could not get list of article URLs")
 
-    def scape_page_link_urls(self, url):
+    def scrape_page_link_urls(self, url):
         try:
             site = newspaper.build(url, memoize_articles=False)
             # parse HTML
-            soup = BeautifulSoup(site.html, 'html.parser')
-            soupArticles = []
-            for link in soup.find_all('a'):
-                soupArticles.append(link.get('href'))
+            site_mark_up = BeautifulSoup(site.html, 'html.parser')
+            site_page_link_urls = []
+            # get links
+            for link in site_mark_up.find_all('a'):
+                # populate list of links
+                site_page_link_urls.append(link.get('href'))
+            return site_page_link_urls
         except:
             print("Error: Could not scape page link urls")
 
@@ -94,3 +97,15 @@ class WebScrapeService:
             return article
         except:
             print("Error: Could not get article content")
+
+             # for article in site_articles:
+            #     print(article.url)
+            #     # Get article content
+            #     article_content = webscrape_service.get_article_content(article)
+                # If Article contains targeted keywords
+                # for keyword in article_content.keywords:
+                #     print(keyword)
+        #             # Add wanted article content to email body
+        #             article_paragraph = email_service.format_email_paragraph(article_content)
+        #             # And space
+        #             email_body += article_paragraph + "\n \n \n"

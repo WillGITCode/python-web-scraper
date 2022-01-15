@@ -4,26 +4,12 @@ import json
 import datetime
 from dateutil.parser import parse
 
-def get_article_content():
-    try:
-        url = "https://www.nature.com/articles/d41586-022-00027-4"
-        sub_paths = "/articles/"
-        site = newspaper.build(url, memoize_articles=False)
-        print(len(site.articles))
-        # for article in site.articles:
-        #     print(article.url)
+strings = ['https://theconversation.com/profiles/kersten-hall-130291', 'https://theconversation.com/jobs/maisam-najafizada-427368', '/profiles/maria-josey-1300777']
 
-        soup = BeautifulSoup(site.html, 'html.parser')
-        soupArticles = []
-        for link in soup.find_all('a'):
-            # print(link.get('href'))
-            if(link.get('href').find(sub_paths) > -1):
-                soupArticles.append(link.get('href'))
-        print(len(soupArticles))
-        print(site.article_urls())
-        print(" ")
-        print(soupArticles)
-    except:
-        print("Error: Could not get article content")
+my_strings = list(filter(lambda x: x.find("/profiles/") > -1, strings))
 
-get_article_content()
+for i in range(len(my_strings)):
+    if my_strings[i].startswith("/"):
+        my_strings[i] = "https://theconversation.com" + my_strings[i]
+
+print(my_strings)

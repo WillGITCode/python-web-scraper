@@ -15,31 +15,37 @@ def main():
         email_body = ""
         # Iterate through sites
         for site in sites:
-            # Build site
-            site = webscrape_service.get_site(site)
-            # Get articles
-            site_articles = webscrape_service.get_site_articles(site)
-            #site_articles = webscrape_service.get_recent_site_articles(site, config.publication_date)
-            print(len(site_articles))
-            # article_date = webscrape_service.get_article_publish_date(site_articles[0])
-            for article in site_articles:
-                print(article.url)
-            #     # Get article content
-            #     article_content = webscrape_service.get_article_content(article)
-                # If Article contains targeted keywords
-                # for keyword in article_content.keywords:
-                #     print(keyword)
-        #             # Add wanted article content to email body
-        #             article_paragraph = email_service.format_email_paragraph(article_content)
-        #             # And space
-        #             email_body += article_paragraph + "\n \n \n"
+            # Get links present on site page
+            page_links = webscrape_service.scrape_page_link_urls(site[0])
+            print("Links present on page", site[0] ,len(page_links))
+            relevent_links = []
+            # Limit to relevent links By subpaths
+            if len(site) > 1:
+                for path in site[1:]:
+                    links_at_path = list(filter(lambda x: x.find(path) > -1, page_links))
+                    print(len(links_at_path), " links with subpath", path)
+                    relevent_links.extend(links_at_path)
+            # Or by the current pages URL
+            else:
+                print("No path specified")
+                relevent_links.extend(list(filter(lambda x: x.find(site[0]) > -1, page_links)))
+                # And the links with relative paths present on the page
+                relevent_links.extend(list(filter(lambda x: x.startswith("/"), page_links)))
+
+            # Make every link URL absolute
+            for i in range(len(relevent_links)):
+                if relevent_links[i].startswith("/"):
+                    relevent_links[i] = site[0] + relevent_links[i]
+
+            print("Relevent links : ", len(relevent_links))
+            print (relevent_links)
 
 
             
         # # send email
         # email_service.send_email(email_service.format_email_subject(keywords), email_body)
     finally:
-        print("Bye world!")
+        print("Bye world! \n")
 
 
 if __name__ == '__main__':
