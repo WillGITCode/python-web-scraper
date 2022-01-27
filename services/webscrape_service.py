@@ -1,11 +1,24 @@
 import newspaper
+from urllib.parse import urljoin, urlparse
 from newspaper.utils import BeautifulSoup
 import json
 import datetime
 from dateutil.parser import parse
 
 class WebScrapeService:
-      
+    # Checks whether `url` is a valid URL
+    def link_is_valid(self, url):
+        parsed = urlparse(url)
+        return bool(parsed.netloc) and bool(parsed.scheme)
+
+    # Remove URL GET parameters, queries, fragments
+    def remove_url_fragments(self, url):
+        parsed_url = urlparse(url)
+        
+        clean_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
+        return clean_url
+
+    # newspaper based functions
     def get_site(self, url):
         # Create site source object
         try:
@@ -29,11 +42,16 @@ class WebScrapeService:
             site_page_link_urls = []
             # get links
             for link in site_mark_up.find_all('a'):
-                # populate list of links
-                site_page_link_urls.append(link.get('href'))
+                # get link ref
+                href = link.attrs.get("href")
+                if href == "" or href is None:
+                # skip empty href tag
+                    continue
+                # populate list
+                site_page_link_urls.append(href)
             return site_page_link_urls
         except:
-            print("Error: Could not scape page link urls")
+            print("Error: Could not scrape page link urls")
 
     def get_site_articles(self, site):
         try:
@@ -47,7 +65,7 @@ class WebScrapeService:
         except: 
             print("Error: Could not get article")
 
-    def get_recent_site_articles(self, site, date):
+    def filter_recent_site_articles(self, site, date):
         
         recent_articles = []
         for article in site.articles:
@@ -97,6 +115,64 @@ class WebScrapeService:
             return article
         except:
             print("Error: Could not get article content")
+
+    # Custom/brute force based functions
+
+    def get_crawled_page_links(self, url):
+        try:
+            # Get unique links from page
+            page_links = list(self.scrape_page_link_urls(url))
+            # Create an accumalated links set
+            relevent_links = set(())
+            # Add absolute links of current site
+            relevent_links.update(list(filter(lambda x: x.find(url) > -1, page_links)))
+            # And the links with relative links of current site
+            relevent_links.update(list(filter(lambda x: x.startswith("/"), page_links)))
+            # Convert set to list for iteration
+            relevent_links = list(relevent_links)
+            # Make every link URL absolute
+            for i in range(len(relevent_links)):
+                if relevent_links[i].startswith("/"):
+                    relevent_links[i] = urljoin(url,relevent_links[i])
+
+            return list(relevent_links)
+        except:
+            print("Error: Could not crawl page links")
+    
+    def get_crawled_site_links(self, url):
+        # Recursive function to crawl site
+        def crawl(url):
+            # Get current site links from page
+            page_links = self.get_crawled_page_links(url)
+            print("New urls at:", url, len(page_links))
+            print("Total urls:", len(unique_site_links))
+
+            for link in page_links:
+                # Invalid URL
+                if not self.link_is_valid(link):
+                    continue
+                # Not unique
+                if link in unique_site_links:
+                    continue
+                # External link
+                if domain_name not in link:
+                    continue
+                # Add to unique site links
+                unique_site_links.add(link) 
+                # Recursive call
+                crawl(link)
+
+        try:
+            # Domain name of the URL
+            domain_name = urlparse(url).netloc
+            # Create an accumalated links set
+            unique_site_links = set(())
+            # Crawl site
+            crawl(url)
+    
+            return unique_site_links
+        except BaseException as err:
+            print(f"Unexpected {err=}, {type(err)=}")
 
              # for article in site_articles:
             #     print(article.url)

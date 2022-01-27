@@ -16,29 +16,22 @@ def main():
         # Iterate through sites
         for site in sites:
             # Get links present on site page
-            page_links = webscrape_service.scrape_page_link_urls(site[0])
-            print("Links present on page", site[0] ,len(page_links))
+            site_links = webscrape_service.get_crawled_site_links(site[0])
+            print("Links found at site", site[0] ,len(site_links))
             relevent_links = []
             # Limit to relevent links By subpaths
             if len(site) > 1:
                 for path in site[1:]:
-                    links_at_path = list(filter(lambda x: x.find(path) > -1, page_links))
+                    links_at_path = list(filter(lambda x: x.find(path) > -1, site_links))
                     print(len(links_at_path), " links with subpath", path)
                     relevent_links.extend(links_at_path)
-            # Or by the current pages URL
+            # Or all links
             else:
                 print("No path specified")
-                relevent_links.extend(list(filter(lambda x: x.find(site[0]) > -1, page_links)))
-                # And the links with relative paths present on the page
-                relevent_links.extend(list(filter(lambda x: x.startswith("/"), page_links)))
-
-            # Make every link URL absolute
-            for i in range(len(relevent_links)):
-                if relevent_links[i].startswith("/"):
-                    relevent_links[i] = site[0] + relevent_links[i]
+                relevent_links = site_links
 
             print("Relevent links : ", len(relevent_links))
-            print (relevent_links)
+            # print (relevent_links)
 
 
             
