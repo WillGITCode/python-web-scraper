@@ -3,27 +3,28 @@ from newspaper.utils import BeautifulSoup
 import datetime
 from dateutil.parser import parse
 from services import webscrape_service
+from urllib.parse import urljoin, urlparse
+from os import path
+import json
 
 webscrape_service = webscrape_service.WebScrapeService()
 
-links = webscrape_service.get_crawled_site_links("https://www.sciencealert.com/latest")
+url = "https://futurespartan.com"
 
+links = webscrape_service.get_crawled_site_links(url)
+
+
+site_map_json = {
+    "urls": list(links)
+}
+
+write_file = urlparse(url).netloc
+write_path = "./site_cache/" + write_file +".json"
+write_path = path.abspath(write_path)
+
+with open(write_path, "w") as write_file:
+    json.dump(site_map_json, write_file)
 
 print("==========================")
 print(len(links))
-# print(links)
 print("==========================")
-
-# strings = ['https://nature.com', 'https://theconversation.com/profiles/kersten-hall-130291', 'https://theconversation.com/jobs/maisam-najafizada-427368', '/profiles/maria-josey-1300777']
-
-# my_strings = list(filter(lambda x: x.find("/profiles/") > -1, strings))
-
-# for i in range(len(my_strings)):
-#     if my_strings[i].startswith("/"):
-#         my_strings[i] = "https://theconversation.com" + my_strings[i]
-
-# page_links = set((webscrape_service.get_crawled_page_links(strings[0])))
-
-# print("==========================")
-# print(page_links)
-# print(len(page_links))

@@ -170,7 +170,7 @@ class WebScrapeService:
             # Crawl site
             crawl(url)
     
-            return unique_site_links
+            return list(unique_site_links)
         except BaseException as err:
             print(f"Unexpected {err=}, {type(err)=}")
 
