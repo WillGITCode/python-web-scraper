@@ -34,30 +34,34 @@ class WebScrapeService:
         except:
             print("Error: Could not set site map")
 
-#TODO: refactor and move to data_util
-    def filter_urls_by_sub_directory(self, site_urls, sub_directories):
+    def filter_urls(self, site_urls, includes=None, excludes=None):
         try:
-            matching_urls = []
-            # If given sub_directories filter
-            if sub_directories is not None and len(sub_directories) > 0:
-                for directory in sub_directories:
-                    links_at_directory = list(filter(lambda x: x.find(directory) > -1, site_urls))
-                    print(len(links_at_directory), " links in directory", directory)
-                    matching_urls.extend(links_at_directory)
-            # Or return all
-            else:
-                print("No directory specified")
-                return site_urls
+            matching_urls = site_urls
+            # If given includes add to matching urls
+            if includes is not None and len(includes) > 0:
+                for sub_string in includes:
+                    matching_urls = list(filter(lambda x: x.find(sub_string) > -1, site_urls))
+            # If given excludes remove from matching urls
+            if excludes is not None and len(excludes) > 0:
+                for sub_string in excludes:
+                    matching_urls = list(filter(lambda x: x.find(sub_string) == -1, matching_urls))
             return matching_urls
         except:
-            print("Error: Could not filter urls by sub directory")
+            print("Error: Could not filter urls")
 
-    def get_recent_site_content(self, url, published, sub_directories=None):
+    def get_recent_site_pages(self, url, date_range, sub_directories=None, exclude_directories=None):
         site_urls = self.get_crawled_site_urls(url)
-        site_urls = self.filter_urls_by_sub_directory(site_urls, sub_directories)
-        # site_urls = self.fi
-        print("Relevent links : ", len(site_urls))
-        return remove_list_duplicates(site_urls)
+        filtered_urls = self.filter_urls(site_urls, sub_directories, exclude_directories)
+        site_pages = self.site_util.get_pages(filtered_urls)
+        recent_pages = self.site_util.filter_pages_by_publication_date(site_pages, date_range)
+        return remove_list_duplicates(recent_pages)
+
+    def load_page_content(self, page):
+        try:
+            page_content = self.site_util.load_page_content(page)
+            return page_content
+        except:
+            print("Error: Could not load page content")
 
     def get_crawled_page_links(self, url):
         try:
@@ -85,7 +89,7 @@ class WebScrapeService:
         def crawl(url):
             # Get current site links from page
             page_links = self.get_crawled_page_links(url)
-            print("New urls at:", url, len(page_links))
+            print("Urls at:", url, len(page_links))
             print("Total urls:", len(unique_site_urls))
 
             for link in page_links:
@@ -121,16 +125,3 @@ class WebScrapeService:
             return site_urls
         except BaseException as err:
             print(f"Unexpected {err=}, {type(err)=}")
-
-
-        # for article in site_articles:
-    #     print(article.url)
-    #     # Get article content
-    #     article_content = webscrape_service.get_article_content(article)
-        # If Article contains targeted keywords
-        # for keyword in article_content.keywords:
-        #     print(keyword)
-        #             # Add wanted article content to email body
-        #             article_paragraph = email_service.format_email_paragraph(article_content)
-        #             # And space
-        #             email_body += article_paragraph + "\n \n \n"

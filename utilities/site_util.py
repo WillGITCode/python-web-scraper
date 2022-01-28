@@ -1,5 +1,7 @@
 import newspaper
+from htmldate import find_date
 import datetime
+import json
 from newspaper.utils import BeautifulSoup
 from dateutil.parser import parse
 
@@ -7,13 +9,23 @@ from dateutil.parser import parse
 
 class SiteUtil:
     # newspaper based functions
-    def get_site(self, url):
-        # Create site source object
+    def build_site(self, url):
         try:
-            site = newspaper.build(url, memoize_articles=False)
-            return site
+            return newspaper.build(url, memoize_articles=False)
         except:
-            print("Error: Could not build site source object")
+            print("Error: Could not get page object")
+
+    def get_page(self, url):
+        try:
+            return newspaper.Article(url)
+        except:
+            print("Error: Could not get page object")
+
+    def get_pages(self, urls):
+        try:
+            return [self.get_page(url) for url in urls]
+        except:
+            print("Error: Could not get pages")
 
     def get_basic_site_article_urls(self, site):
         # get list of article URLs
@@ -53,53 +65,63 @@ class SiteUtil:
         except: 
             print("Error: Could not get article")
 
-    def filter_recent_site_articles(self, site, date):
-        
-        recent_articles = []
-        for article in site.articles:
+    def filter_pages_by_publication_date(self, pages, published):
+        recent_pages = []
+        for page in pages:
             try:
-                publish_date = parse(self.get_article_publish_date(article)[0]).date()
-                today = datetime.date.today()
-                print("publish_date : ", publish_date)
-                print("today : ", today)
-                print("recent : ", today < publish_date)
-                # if(publish_date.date() > today.date()):
-                #     recent_articles.append(article)
-                # return recent_articles
+                publication_cutoff = datetime.date.today() 
+                if published is not None and published > 0: 
+                    publication_cutoff = publication_cutoff - datetime.timedelta(days=published)
+                
+                publication_date_value = self.get_page_publish_date(page)
+                # Skip if page publish date is not found
+                if publication_date_value is None:
+                    continue
+                publish_date = parse(publication_date_value).date()
+                if(publish_date > publication_cutoff):
+                    print(page.url, ":", publish_date)
+                    recent_pages.append(page)
+                
             except:
                 print("Error: Could not get recent articles")
+        return recent_pages
     
-    def get_article_publish_date(self, article):
+    # def get_page_publish_date(self, page):
+    #     try:
+    #         # get content
+    #         page.download()
+    #         # parse HTML
+    #         page.parse()
+    #         print(page.url)
+    #         soup = BeautifulSoup(page.html, 'html.parser')
+    #         # print(soup)
+            
+    #         bbc_dictionary = json.loads("".join(soup.find("script", {"type":"application/ld+json"}).contents))
+    #         publish_date = [value for (key, value) in bbc_dictionary.items() if (key == 'datePublished' or key == 'datePosted')]
+    #         return publish_date
+    #     except:
+    #         print("Error: Could not get article publish date")
+
+    def get_page_publish_date(self, page):
         try:
             # get content
-            article.download()
+            page.download()
             # parse HTML
-            article.parse()
-
-            soup = BeautifulSoup(article.html, 'html.parser')
-            
-            bbc_dictionary = json.loads("".join(soup.find("script", {"type":"application/ld+json"}).contents))
-            publish_date = [value for (key, value) in bbc_dictionary.items() if (key == 'datePublished' or key == 'datePosted')]
+            page.parse()
+            publish_date = find_date(page.html)
             return publish_date
         except:
             print("Error: Could not get article publish date")
 
-    def get_article_content(self, article):
+    def load_page_content(self, page):
         try:
-            # get content
-            article.download()
-            # parse HTML
-            article.parse()
-            # get list of image links
-            article.images
-            # try get date
-            article.publish_date = self.get_article_publish_date(article)
-            # get list of videos
-            article.movies
-            # process natural language (try to :)
-            article.nlp()
-            # keywords
-            article.keywords
-            return article
-        except:
-            print("Error: Could not get article content")
+            page.nlp()
+            page.keywords
+        except BaseException as err:
+            if type(err) == newspaper.article.ArticleException:
+                page.download()
+                page.parse()
+                page.nlp()
+                page.keywords
+        finally:
+            return page
