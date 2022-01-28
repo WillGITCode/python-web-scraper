@@ -1,38 +1,14 @@
 from os import path, listdir
 import json
 from urllib.parse import urljoin, urlparse
+from click import FileError
 
-# Temporary Global var cache directory
+# Temporary Global cache directory
 cache_directory = path.abspath("./site_cache")
-
-# url = "https://www.sciencealert.uk"
-# # Domain name of the URL
-
-
-# file_path = path.abspath("./site_cache/test.json")
-# print("==========================")
-
-# urls = set(())
-
-# with open(file_path, "r") as read_file:
-#     data = json.load(read_file)
-#     for url in data["urls"]:
-#         urls.add(url)
-
-# site_map_json = {
-#     "urls": list(urls)
-# }
-
-# write_file = domain_name = urlparse(url).netloc
-# write_path = "./site_cache/" + write_file +".json"
-# write_path = path.abspath(write_path)
-
-# with open(write_path, "w") as write_file:
-#     json.dump(site_map_json, write_file)
 
 def cache_file_name_from_url(url):
     try:
-        return urlparse(url).netloc + ".json"
+        return urlparse(url).netloc.split(".")[-2] + ".json"
     except:
         return None
         
@@ -73,3 +49,12 @@ def get_file_contents(file_name):
         return data
     except FileNotFoundError:
         return []
+
+# Sets file contents
+def set_file_contents(file_name, content):
+    try:
+        file_path = path.abspath(cache_directory + "/" + file_name)
+        with open(file_path, "w") as write_file:
+            json.dump(content, write_file)
+    except FileError:
+        print("Error: Could not set file contents")

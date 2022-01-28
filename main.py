@@ -1,5 +1,5 @@
 import config as config
-from services import webscrape_service, cache_service, email_service
+from services import webscrape_service, email_service
 
 # Create service objects
 email_service = email_service.EmailService(config)
@@ -14,34 +14,10 @@ def main():
         email_body = ""
         # Iterate through sites
         for site in sites:
-            # Declare the list of urls
-            site_urls = []
-            # Check if site has a cached file with content
-            site_cache_file_name = cache_service.cache_file_name_from_url(site[0])
-            site_has_cached_urls = cache_service.file_has_key(site_cache_file_name ,"urls")
-            if cache_service.file_exists(site_cache_file_name) and site_has_cached_urls:
-                # Update list with sites cached urls
-               site_urls = cache_service.get_file_contents(site_cache_file_name)["urls"]
-            else:
-                # Crawl site from scratch
-                # site_urls = webscrape_service.get_crawled_site_urls(site[0])
-                print("no cache")
-            print("Links found at site", site[0] ,len(site_urls))
-            relevent_links = []
-            # Limit to relevent links By subpaths
-            if len(site) > 1:
-                for path in site[1:]:
-                    links_at_path = list(filter(lambda x: x.find(path) > -1, site_urls))
-                    print(len(links_at_path), " links with subpath", path)
-                    relevent_links.extend(links_at_path)
-            # Or all links
-            else:
-                print("No path specified")
-                relevent_links = site_urls
+            # Articles to summarize in email
+            recent_articles = webscrape_service.get_recent_site_content(site[0], "today", site[1:])
 
-            print("Relevent links : ", len(relevent_links))
-            # print (relevent_links)
-
+            print("recent articles", len(recent_articles))
 
             
         # # send email
