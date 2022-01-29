@@ -48,7 +48,7 @@ def get_file_contents(file_name):
             data = json.load(read_file)
         return data
     except FileNotFoundError:
-        return []
+        return None
 
 # Sets file contents
 def set_file_contents(file_name, content):

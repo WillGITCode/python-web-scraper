@@ -50,7 +50,7 @@ class WebScrapeService:
             print("Error: Could not filter urls")
 
     def get_recent_site_pages(self, url, date_range, sub_directories=None, exclude_directories=None):
-        site_urls = self.get_crawled_site_urls(url)
+        site_urls = self.get_crawled_site_urls(url, exclude_directories)
         filtered_urls = self.filter_urls(site_urls, sub_directories, exclude_directories)
         site_pages = self.site_util.get_pages(filtered_urls)
         recent_pages = self.site_util.filter_pages_by_publication_date(site_pages, date_range)
@@ -84,13 +84,12 @@ class WebScrapeService:
         except:
             print("Error: Could not crawl page links")
     
-    def get_crawled_site_urls(self, url):
+    def get_crawled_site_urls(self, url, exclude_directories=None):
         # Recursive function to crawl site
         def crawl(url):
             # Get current site links from page
             page_links = self.get_crawled_page_links(url)
-            print("Urls at:", url, len(page_links))
-            print("Total urls:", len(unique_site_urls))
+            print("Crawling", url, "Current urls:", len(unique_site_urls))
 
             for link in page_links:
                 # Invalid URL
@@ -101,6 +100,10 @@ class WebScrapeService:
                     continue
                 # External link
                 if domain_name not in link:
+                    continue
+                # Url includes blacklisted sub_directories
+                if [sub_dir for sub_dir in exclude_directories if(sub_dir in link)]: 
+                # exclude_directories is not None and link in exclude_directories:
                     continue
                 # Add to unique site links
                 unique_site_urls.add(link) 

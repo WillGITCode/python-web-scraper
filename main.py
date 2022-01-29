@@ -30,11 +30,10 @@ def main():
                     # And space
                     email_body += article_paragraph + "\n \n \n"
 
-            
-        # # send email
+        # send email
         email_service.send_email(email_service.format_email_subject(keywords), email_body)
-    finally:
-        print(email_body)
+    except BaseException as err:
+        print(f"Unexpected {err=}, {type(err)=}")
 
 
 if __name__ == '__main__':
