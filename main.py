@@ -25,15 +25,17 @@ def main():
                 # Get article content
                 page_content = webscrape_service.load_page_content(page)
                 # If Article contains targeted keywords add to email body
-                if any(keyword in keywords for keyword in page_content.keywords):
+                if page_content.keywords is not None and any(keyword in keywords for keyword in page_content.keywords):
                     article_paragraph = email_service.format_email_paragraph(page_content)
                     # And space
                     email_body += article_paragraph + "\n \n \n"
 
         # send email
-        email_service.send_email(email_service.format_email_subject(keywords), email_body)
-    except BaseException as err:
-        print(f"Unexpected {err=}, {type(err)=}")
+        if len(email_body) > 0:
+            email_service.send_email(email_service.format_email_subject(keywords), email_body)
+    except BaseException as error:
+        print("Error excecuting main", error)
+        print("Error type", type(error))
 
 
 if __name__ == '__main__':

@@ -130,3 +130,10 @@ dmypy.json
 
 # Config
 *config.py
+
+# Cache
+.site_cache/
+site_cache/
+
+# tempfile
+test.py

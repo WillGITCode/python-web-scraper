@@ -51,7 +51,7 @@ class SiteUtil:
                 site_page_link_urls.append(href)
             return site_page_link_urls
         except:
-            print("Error: Could not scrape page link urls")
+            print("Error: Could not scrape page link at: ", url)
 
     def get_site_articles(self, site):
         try:
@@ -67,23 +67,24 @@ class SiteUtil:
 
     def filter_pages_by_publication_date(self, pages, published):
         recent_pages = []
-        for page in pages:
-            try:
-                publication_cutoff = datetime.date.today() 
-                if published is not None and published > 0: 
-                    publication_cutoff = publication_cutoff - datetime.timedelta(days=published)
-                
-                publication_date_value = self.get_page_publish_date(page)
-                # Skip if page publish date is not found
-                if publication_date_value is None:
-                    continue
-                publish_date = parse(publication_date_value).date()
-                if(publish_date > publication_cutoff):
-                    print(page.url, ":", publish_date)
-                    recent_pages.append(page)
-                
-            except:
-                print("Error: Could not get recent articles")
+        if pages is not None:
+            for page in pages:
+                try:
+                    publication_cutoff = datetime.date.today() 
+                    if published is not None and published > 0: 
+                        publication_cutoff = publication_cutoff - datetime.timedelta(days=published)
+                    
+                    publication_date_value = self.get_page_publish_date(page)
+                    # Skip if page publish date is not found
+                    if publication_date_value is None:
+                        continue
+                    publish_date = parse(publication_date_value).date()
+                    if(publish_date > publication_cutoff):
+                        print(page.url, ":", publish_date)
+                        recent_pages.append(page)
+                    
+                except:
+                    print("Error: Could not get recent articles")
         return recent_pages
     
     # def get_page_publish_date(self, page):

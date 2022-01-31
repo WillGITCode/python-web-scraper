@@ -1,12 +1,13 @@
 
 from urllib.parse import urljoin, urlparse
 from utilities.data_util import remove_list_duplicates
-from utilities.site_util import SiteUtil
+from utilities.site_content_util import SiteUtil
 from services import cache_service
 
 class WebScrapeService:
     def __init__(self):
         self.site_util = SiteUtil()
+        self.cache_service = cache_service.CacheService()
 
     # Checks whether `url` is a valid URL
     def link_is_valid(self, url):
@@ -19,20 +20,6 @@ class WebScrapeService:
         
         clean_url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path
         return clean_url
-
-    def get_site_map(self, url):
-        # site's local file name
-        cache_file_name = cache_service.cache_file_name_from_url(url)
-        site_map = cache_service.get_file_contents(cache_file_name)
-        return site_map
-
-    def set_site_map(self, url, key, value):
-        try:
-            site_map = self.get_site_map(url)
-            site_map[key] = value
-            cache_service.set_file_contents(cache_service.cache_file_name_from_url(url), site_map)
-        except:
-            print("Error: Could not set site map")
 
     def filter_urls(self, site_urls, includes=None, excludes=None):
         try:
@@ -80,9 +67,9 @@ class WebScrapeService:
                 if relevent_links[i].startswith("/"):
                     relevent_links[i] = urljoin(url,relevent_links[i])
 
-            return list(relevent_links)
+            return relevent_links
         except:
-            print("Error: Could not crawl page links")
+            print("Error: Could not crawl links at:", url)
     
     def get_crawled_site_urls(self, url, exclude_directories=None):
         # Recursive function to crawl site
@@ -116,7 +103,7 @@ class WebScrapeService:
             # Create an accumalated links set
             unique_site_urls = set(())
             # Check if site has a cached site map
-            site_map = self.get_site_map(url)
+            site_map = self.cache_service.get_site_cache(url)
             # If so add previously crawled links
             if site_map is not None and site_map["urls"] is not None:
                 unique_site_urls.update(site_map["urls"])
@@ -124,7 +111,7 @@ class WebScrapeService:
             crawl(url)
             site_urls = list(unique_site_urls)
             # Update cached site map
-            self.set_site_map(url, "urls", site_urls)
+            self.cache_service.set_site_cache(url, site_urls)
             return site_urls
         except BaseException as err:
             print(f"Unexpected {err=}, {type(err)=}")
