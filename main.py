@@ -1,6 +1,7 @@
 from pandas import date_range
 import config as config
 from services import webscrape_service, email_service
+from utilities import logger
 
 # Create service objects
 email_service = email_service.EmailService(config)
@@ -10,18 +11,22 @@ sites = config.sites
 keywords = config.keywords
 date_range = config.date_range
 url_black_list = config.url_black_list
+log_level = config.log_level
 
 # Entry point
 def main():
     try:
+        # Start logs
+        logger.start_log(log_level)
+        logger.info("Starting main")
+        # Create email body to append to
         email_body = ""
         # Iterate through sites
         for site in sites:
             # Articles to summarize in email
             recent_pages = webscrape_service.get_recent_site_pages(site[0], date_range, site[1:], url_black_list)
-            print("recent articles", len(recent_pages))
+            logger.info("recent articles: " + str(len(recent_pages)))
             for page in recent_pages:
-                print(page.url)
                 # Get article content
                 page_content = webscrape_service.load_page_content(page)
                 # If Article contains targeted keywords add to email body
@@ -34,8 +39,8 @@ def main():
         if len(email_body) > 0:
             email_service.send_email(email_service.format_email_subject(keywords), email_body)
     except BaseException as error:
-        print("Error excecuting main", error)
-        print("Error type", type(error))
+        logger.error("Error excuting main: " + str(error))
+        logger.error("Error type: " + str(type(error)))
 
 
 if __name__ == '__main__':

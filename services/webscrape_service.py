@@ -2,6 +2,7 @@
 from urllib.parse import urljoin, urlparse
 from utilities.data_util import remove_list_duplicates
 from utilities.site_content_util import SiteUtil
+from utilities import logger
 from services import cache_service
 
 class WebScrapeService:
@@ -34,7 +35,7 @@ class WebScrapeService:
                     matching_urls = list(filter(lambda x: x.find(sub_string) == -1, matching_urls))
             return matching_urls
         except:
-            print("Error: Could not filter urls")
+            logger.error("Error: Could not filter urls")
 
     def get_recent_site_pages(self, url, date_range, sub_directories=None, exclude_directories=None):
         site_urls = self.get_crawled_site_urls(url, exclude_directories)
@@ -48,7 +49,7 @@ class WebScrapeService:
             page_content = self.site_util.load_page_content(page)
             return page_content
         except:
-            print("Error: Could not load page content")
+            logger.error("Error: Could not load page content")
 
     def get_crawled_page_links(self, url):
         try:
@@ -69,14 +70,14 @@ class WebScrapeService:
 
             return relevent_links
         except:
-            print("Error: Could not crawl links at:", url)
+            logger.error("Error: Could not crawl links at:" + url)
     
     def get_crawled_site_urls(self, url, exclude_directories=None):
         # Recursive function to crawl site
         def crawl(url):
             # Get current site links from page
             page_links = self.get_crawled_page_links(url)
-            print("Crawling", url, "Current urls:", len(unique_site_urls))
+            logger.info("Crawling: " + url + " Current urls: " + str(len(unique_site_urls)))
 
             for link in page_links:
                 # Invalid URL
@@ -113,5 +114,5 @@ class WebScrapeService:
             # Update cached site map
             self.cache_service.set_site_cache(url, site_urls)
             return site_urls
-        except BaseException as err:
-            print(f"Unexpected {err=}, {type(err)=}")
+        except BaseException as error:
+            logger.error("Error crawling site:" + str(error))

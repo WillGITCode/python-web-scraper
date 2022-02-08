@@ -1,5 +1,6 @@
 from os import path, listdir
 import json
+from utilities import logger
 
 def get_directory_file_names(directory):
     try:
@@ -22,4 +23,4 @@ def set_file_contents(file_path, content):
         with open(file_path, "w") as write_file:
             json.dump(content, write_file)
     except:
-        print("Error: Could not set file contents", file_path)
+        logger.error("Error: Could not set file contents" + file_path)

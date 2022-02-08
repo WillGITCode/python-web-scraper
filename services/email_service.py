@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from utilities import logger
 
 class EmailService:
 
@@ -18,7 +19,7 @@ class EmailService:
             Article NLP summary: %s
             """ % (article.title, article.url, self.format_email_subject(article.keywords), article.summary)
     
-    def format_email_body(self, articles):
+    def format_email_body(self, article):
         return """\
             Article Title: %s
             Article URL: %s
@@ -38,6 +39,6 @@ class EmailService:
             smtp_server.login(self.config.gmail_sender["user_name"], self.config.gmail_sender["password"])
             smtp_server.sendmail(self.config.gmail_sender["user_name"], self.config.email_reciever["user_name"], email_text.as_string())
             smtp_server.close()
-            print ("Email sent successfully!")
-        except Exception as ex:
-            print ("Something went wrong….",ex)
+            logger.info("Email sent successfully!")
+        except Exception as error:
+            logger.error("Something went wrong... " + str(error))

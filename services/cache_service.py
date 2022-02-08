@@ -1,8 +1,7 @@
-from os import path, listdir
-import json
+from os import path
 import os
 from urllib.parse import urljoin, urlparse
-from utilities import file_util
+from utilities import file_util, logger
 
 class CacheService:
     def __init__(self):
@@ -42,7 +41,7 @@ class CacheService:
             file_path = path.abspath(self.cache_directory + "/" + cache_name)
             file_util.set_file_contents(file_path, content)
         except:
-            print("Error: Could not set site cache", cache_name)
+            logger.error("Error: Could not create site cache: " + cache_name)
     
     # Sets file contents
     def set_site_cache(self, url, content):
@@ -54,7 +53,7 @@ class CacheService:
             }
             file_util.set_file_contents(file_path, site_cache)
         except:
-            print("Error: Could not set site cache", cache_name)
+            logger.error("Error: Could not set site cache: " + cache_name)
 
     # Sets file contents
     def get_site_cache(self, url):
@@ -64,5 +63,5 @@ class CacheService:
             site_cache = file_util.get_file_contents(file_path)
             return site_cache
         except:
-            print("Error: Could not get site cache", cache_name)
+            logger.error("Error: Could not get site cache: " + cache_name)
             return None
