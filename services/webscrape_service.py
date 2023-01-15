@@ -1,7 +1,9 @@
 
+import time
 from urllib.parse import urljoin, urlparse
 from utilities.data_util import remove_list_duplicates
 from utilities.site_content_util import SiteUtil
+import random
 from utilities import logger
 from services import cache_service
 
@@ -67,7 +69,6 @@ class WebScrapeService:
             for i in range(len(relevent_links)):
                 if relevent_links[i].startswith("/"):
                     relevent_links[i] = urljoin(url,relevent_links[i])
-
             return relevent_links
         except:
             logger.error("Error: Could not crawl links at:" + url)
@@ -76,27 +77,33 @@ class WebScrapeService:
         # Recursive function to crawl site
         def crawl(url):
             # Get current site links from page
-            page_links = self.get_crawled_page_links(url)
-            logger.info("Crawling: " + url + " Current urls: " + str(len(unique_site_urls)))
+            try:
+                page_links = self.get_crawled_page_links(url)
+                if page_links is not None:
+                    logger.info("Crawling: " + url + " Current urls: " + str(len(unique_site_urls)))
 
-            for link in page_links:
-                # Invalid URL
-                if not self.link_is_valid(link):
-                    continue
-                # Not unique
-                if link in unique_site_urls:
-                    continue
-                # External link
-                if domain_name not in link:
-                    continue
-                # Url includes blacklisted sub_directories
-                if [sub_dir for sub_dir in exclude_directories if(sub_dir in link)]: 
-                # exclude_directories is not None and link in exclude_directories:
-                    continue
-                # Add to unique site links
-                unique_site_urls.add(link) 
-                # Recursive call
-                crawl(link)
+                    for link in page_links:
+                        # Invalid URL
+                        if not self.link_is_valid(link):
+                            continue
+                        # Not unique
+                        if link in unique_site_urls:
+                            continue
+                        # External link
+                        if domain_name not in link:
+                            continue
+                        # Url includes blacklisted sub_directories
+                        if [sub_dir for sub_dir in exclude_directories if(sub_dir in link)]: 
+                        # exclude_directories is not None and link in exclude_directories:
+                            continue
+                        # Add to unique site links
+                        unique_site_urls.add(link) 
+                        # time.sleep(random.random()*6)
+                        # Recursive call
+                        crawl(link)
+            except BaseException as error:
+                logger.error("Error in crawls: " + str(error) + " " + str(type(error)))
+                pass
 
         try:
             # Domain name of the URL

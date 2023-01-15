@@ -39,8 +39,7 @@ def main():
         if len(email_body) > 0:
             email_service.send_email(email_service.format_email_subject(keywords), email_body)
     except BaseException as error:
-        logger.error("Error excuting main: " + str(error))
-        logger.error("Error type: " + str(type(error)))
+        logger.error("Error excuting main: " + str(error) + " " + str(type(error)))
 
 
 if __name__ == '__main__':

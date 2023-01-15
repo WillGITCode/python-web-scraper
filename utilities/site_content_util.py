@@ -1,3 +1,4 @@
+from urllib.error import HTTPError
 import newspaper
 from htmldate import find_date
 import datetime
@@ -50,14 +51,17 @@ class SiteUtil:
                 # populate list
                 site_page_link_urls.append(href)
             return site_page_link_urls
-        except:
-            logger.error("Error: Could not scrape page link at: " + url)
+        except HTTPError as http_error:
+            logger.error("Caught 429" + str(http_error) + " " + str(type(http_error)))
+            raise KeyboardInterrupt
+        except BaseException as error:
+            logger.error("Error: Could not scrape page link at: " + url + str(error) + " " + str(type(error)))
 
     def get_site_articles(self, site):
         try:
             return site.articles
-        except:
-            logger.error("Error: Could not get list of articles")
+        except BaseException as error:
+            logger.error("Error: Could not get list of articles" + str(error) + " " + str(type(error)))
 
     def get_site_article(self, site, index):
         try:
@@ -111,7 +115,7 @@ class SiteUtil:
             publish_date = find_date(page.html)
             return publish_date
         except:
-            logger.error("Error: Could not get article publish date" + page.url)
+            logger.error("Error: Could not get article publish date " + page.url)
 
     def load_page_content(self, page):
         try:

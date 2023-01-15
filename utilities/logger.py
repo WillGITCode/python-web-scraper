@@ -2,11 +2,14 @@ from os import path
 import os
 from datetime import datetime
 import logging
+import warnings
 from utilities import file_util
 
 # Temporary Global log directory
 log_directory = path.abspath("./logs")
 date_format = "%b-%d-%Y_%H-%M"
+warnings.warn("deprecated", DeprecationWarning)
+warnings.filterwarnings("error")
 
 
 def start_log(log_level):
