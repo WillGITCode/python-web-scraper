@@ -5,8 +5,7 @@ import datetime
 from newspaper.utils import BeautifulSoup
 from dateutil.parser import parse
 from utilities import logger
-
-
+from selenium import webdriver
 
 class SiteUtil:
     # newspaper based functions
@@ -37,9 +36,18 @@ class SiteUtil:
 
     def scrape_page_link_urls(self, url):
         try:
-            site = newspaper.build(url, memoize_articles=False)
-            # parse HTML
-            site_mark_up = BeautifulSoup(site.html, 'html.parser')
+            # Selenium
+            browser = webdriver.Chrome()
+            # navigate to the website
+            browser.get(url)
+            # wait for the dynamic content to load
+            browser.implicitly_wait(3)
+            # extract the content
+            content = browser.page_source
+            # close the browser
+            browser.quit()
+            # get the links
+            site_mark_up = BeautifulSoup(content, 'html.parser')                
             site_page_link_urls = []
             # get links
             for link in site_mark_up.find_all('a'):

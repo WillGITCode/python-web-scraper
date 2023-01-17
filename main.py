@@ -37,7 +37,9 @@ def main():
 
         # send email
         if len(email_body) > 0:
-            email_service.send_email(email_service.format_email_subject(keywords), email_body)
+            # email_service.send_email(email_service.format_email_subject(keywords), email_body)
+            with open("example.txt", "a") as file:
+                file.write(email_body)
     except BaseException as error:
         logger.error("Error excuting main: " + str(error) + " " + str(type(error)))
 

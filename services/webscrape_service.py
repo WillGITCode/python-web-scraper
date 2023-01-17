@@ -98,7 +98,6 @@ class WebScrapeService:
                             continue
                         # Add to unique site links
                         unique_site_urls.add(link) 
-                        # time.sleep(random.random()*6)
                         # Recursive call
                         crawl(link)
             except BaseException as error:
